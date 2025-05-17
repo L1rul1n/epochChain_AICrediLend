@@ -196,6 +196,7 @@ class CircleNodeWashTradeDetector:
                 'rate': self.graph.calculate_state_change_rate(cycle, transactions)
             })
 
+
 # ===================== 邻居节点检测算法 =====================
 class NeighborNodeWashTradeDetector:
     def __init__(self, token_flow_graph, threshold=0.8, min_degree=3):
@@ -203,44 +204,52 @@ class NeighborNodeWashTradeDetector:
         self.threshold = threshold
         self.min_degree = min_degree
         self.wash_trades = []
+        self.visited = set()  # 新增全局访问记录
 
     def detect(self):
         self.wash_trades = []
         key_nodes = self.graph.get_key_nodes(self.min_degree)
         for start_node in key_nodes:
-            self._detect_from_node(start_node)
+            if start_node not in self.visited:  # 避免重复检测
+                self._detect_from_node(start_node)
         return self.wash_trades
 
     def _detect_from_node(self, start_node):
-        node_list = [start_node]
-        visited = set([start_node])
         queue = deque([start_node])
-        while queue:
+        self.visited.add(start_node)  # 记录已访问
+
+        # 新增循环终止条件
+        max_neighbors = 20  # 最大检测邻居数
+        checked_pairs = set()  # 已检测节点对
+
+        while queue and len(self.visited) < max_neighbors:
             current_node = queue.popleft()
             neighbors = self.graph.get_node_neighbors(current_node)
-            for neighbor in neighbors:
-                if neighbor in visited:
-                    continue
-                visited.add(neighbor)
-                node_list.append(neighbor)
-                queue.append(neighbor)
-                self._check_wash_trade(node_list)
 
-    def _check_wash_trade(self, nodes):
-        transactions = []
-        for i in range(len(nodes)):
-            for j in range(i + 1, len(nodes)):
-                node1 = nodes[i]
-                node2 = nodes[j]
-                txs = self.graph.get_transactions_between(node1, node2)
-                transactions.extend(txs)
-        if not transactions:
+            for neighbor in neighbors:
+                if len(self.visited) >= max_neighbors:
+                    break
+
+                if neighbor not in self.visited:
+                    self.visited.add(neighbor)
+                    queue.append(neighbor)
+
+                    # 仅检测新节点与现有节点的关系（新增）
+                    self._check_pair(current_node, neighbor, checked_pairs)
+
+    def _check_pair(self, node1, node2, checked_pairs):
+        """新增方法：检测节点对组合"""
+        pair = tuple(sorted([node1, node2]))
+        if pair in checked_pairs:
             return
-        if self.graph.is_wash_trade(nodes, transactions, self.threshold):
+        checked_pairs.add(pair)
+
+        txs = self.graph.get_transactions_between(node1, node2)
+        if txs and self.graph.is_wash_trade([node1, node2], txs, self.threshold):
             self.wash_trades.append({
-                'nodes': nodes.copy(),
-                'transactions': transactions,
-                'rate': self.graph.calculate_state_change_rate(nodes, transactions)
+                'nodes': [node1, node2],
+                'transactions': txs,
+                'rate': self.graph.calculate_state_change_rate([node1, node2], txs)
             })
 
 # ===================== 黑名单模块 =====================
@@ -297,18 +306,26 @@ class WashTradeBlacklist:
 
 # ===================== 主程序入口 =====================
 def main():
-    parser = argparse.ArgumentParser(description='洗盘交易检测系统')
-    parser.add_argument('--input', required=True, help='输入CSV文件路径')
-    parser.add_argument('--output', default='wash_trade_addresses.txt', help='输出文件路径')
-    parser.add_argument('--threshold', type=float, default=0.8, help='洗盘判定阈值')
-    parser.add_argument('--min_degree', type=int, default=3, help='最小节点度数')
-    parser.add_argument('--algorithm', choices=['circle', 'neighbor', 'both'], default='both')
-    args = parser.parse_args()
+    # 硬编码参数设置（可自行修改以下值）
+    # 在Args类中增加超时参数（新增）
+    class Args:
+        input = "data.csv"
+        output = "wash_trade_addresses.txt"
+        threshold = 0.8
+        min_degree = 3
+        algorithm = "both"
+        timeout = 60  # 新增超时设置（秒）
+
+    args = Args()
 
     # 数据加载
     print(f"正在加载数据: {args.input}")
-    df = TransactionLoader.load_data(args.input)
-    print(f"成功加载 {len(df):,} 条交易记录")
+    try:
+        df = TransactionLoader.load_data(args.input)
+        print(f"成功加载 {len(df):,} 条交易记录")
+    except Exception as e:
+        print(f"数据加载失败，请检查文件路径: {str(e)}")
+        return
 
     # 构建交易图
     print("构建交易网络...")
@@ -336,9 +353,20 @@ def main():
 
     # 保存结果
     print(f"\n发现 {len(all_addresses)} 个可疑地址")
+    # 读取已存在的地址
+    existing = set()
+    if os.path.exists(args.output):
+        with open(args.output, 'r') as f:
+            existing = {line.strip() for line in f.readlines()}
+
+    # 合并新旧地址并去重
+    all_addresses = existing.union(all_addresses)
+
+    # 按字母顺序写入文件
     with open(args.output, 'w') as f:
         for addr in sorted(all_addresses):
             f.write(f"{addr}\n")
+
     print(f"结果已保存至: {os.path.abspath(args.output)}")
 
 

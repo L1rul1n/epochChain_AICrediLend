@@ -158,7 +158,7 @@ interface DashboardStats {
   }>;
 }
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { address: walletAddress } = useWallet();
@@ -380,392 +380,267 @@ const Dashboard: React.FC = () => {
       <TechBackground />
       
       <Container maxWidth="lg">
-        <Fade in={true} timeout={800}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <PulseContainer>
-                  <TeamIconImage size={50} color="primary" sx={{ mr: 2 }} />
-                </PulseContainer>
-                <NeonText>
-                  <Typography 
-                    variant="h3" 
-                    component="h1" 
-                    gutterBottom 
-                    sx={{ 
-                      fontWeight: 700, 
-                      textAlign: 'center',
-                      mb: 0,
-                      color: '#fff',
-                      textShadow: `0 0 10px ${theme.palette.primary.main}`,
-                    }}
-                  >
-                    仪表盘
-                  </Typography>
-                </NeonText>
-              </Box>
-              
-              <Tooltip title="刷新数据">
-                <IconButton 
-                  onClick={handleRefresh} 
-                  color="primary"
-                  disabled={refreshing}
-                  sx={{ 
-                    background: alpha(theme.palette.primary.main, 0.1),
-                    '&:hover': {
-                      background: alpha(theme.palette.primary.main, 0.2),
-                    }
-                  }}
-                >
-                  {refreshing ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    <RefreshIcon />
-                  )}
-                </IconButton>
-              </Tooltip>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <NeonText>
+            <Typography 
+              variant="h3" 
+              component="h1" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 700, 
+                textAlign: 'center',
+                mb: 0,
+                color: '#fff',
+                textShadow: `0 0 10px ${theme.palette.primary.main}`,
+              }}
+            >
+              个人中心
+            </Typography>
+          </NeonText>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Avatar
+              sx={{ 
+                width: 60, 
+                height: 60, 
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                mr: 2
+              }}
+            >
+              {/* <TeamLogo /> */}
+            </Avatar>
+            <Box>
+              <Typography variant="h6" fontWeight="600" sx={{ color: '#fff' }}>
+                {formatAddress(address || '')}
+              </Typography>
+              <Chip 
+                label={`信用评分: ${stats.creditScore}`} 
+                size="small"
+                sx={{ 
+                  color: '#fff',
+                  fontWeight: 500,
+                  mt: 1,
+                  background: alpha(stats.creditScore >= 90 ? theme.palette.success.main : 
+                                 stats.creditScore >= 80 ? theme.palette.primary.main : 
+                                 stats.creditScore >= 70 ? theme.palette.secondary.main : 
+                                 theme.palette.warning.main, 0.2),
+                  borderColor: stats.creditScore >= 90 ? theme.palette.success.main : 
+                                 stats.creditScore >= 80 ? theme.palette.primary.main : 
+                                 stats.creditScore >= 70 ? theme.palette.secondary.main : 
+                                 theme.palette.warning.main
+                }}
+              />
             </Box>
-            
-            {/* 用户信息卡片 */}
-            {address ? (
-              <DataCard sx={{ mb: 4 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar 
-                      sx={{ 
-                        width: 60, 
-                        height: 60, 
-                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
-                        mr: 2
-                      }}
-                    >
-                      <TeamLogo />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight="600" sx={{ color: '#fff' }}>
-                        {formatAddress(address || '')}
-                      </Typography>
-                      <Chip 
-                        label={`信用评分: ${stats.creditScore}`} 
-                        size="small"
-                        sx={{ 
-                          color: '#fff',
-                          fontWeight: 500,
-                          mt: 1,
-                          background: alpha(stats.creditScore >= 90 ? theme.palette.success.main : 
-                                         stats.creditScore >= 80 ? theme.palette.primary.main : 
-                                         stats.creditScore >= 70 ? theme.palette.secondary.main : 
-                                         theme.palette.warning.main, 0.2),
-                          borderColor: stats.creditScore >= 90 ? theme.palette.success.main : 
-                                         stats.creditScore >= 80 ? theme.palette.primary.main : 
-                                         stats.creditScore >= 70 ? theme.palette.secondary.main : 
-                                         theme.palette.warning.main
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                </CardContent>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* 借贷统计 */}
+      <Container maxWidth="lg">
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h5" component="h2" fontWeight="600" sx={{ color: '#fff' }}>
+              借贷统计
+            </Typography>
+            <Button variant="contained" color="primary" onClick={() => navigate('/repayment')} startIcon={<TeamIconImage size={20} color="inherit" />} sx={{ borderRadius: 2, background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`, '&:hover': { background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`, boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.5)}` } }}>
+              前往还款
+            </Button>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+            <Box sx={{ flex: '1 1 300px', minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="primary" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    历史借款
+                  </Typography>
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {stats.totalLoans} 笔
+                  </Typography>
+                </StatsCard>
               </DataCard>
-            ) : (
-              <Alert severity="info" sx={{ mb: 4 }}>
-                请连接钱包以查看您的仪表盘信息
-              </Alert>
-            )}
-            
-            {address && (
-              <>
-                {/* 统计卡片 */}
-                <Box sx={{ mb: 4 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h5" component="h2" fontWeight="600" sx={{ color: '#fff' }}>
-                      借贷统计
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => navigate('/repayment')}
-                      startIcon={<TeamIconImage size={20} color="inherit" />}
-                      sx={{ 
-                        borderRadius: 2,
-                        background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-                        '&:hover': {
-                          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                          boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.5)}`
-                        }
-                      }}
-                    >
-                      前往还款
+            </Box>
+
+            <Box sx={{ flex: '1 1 300px', minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="success" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    活跃借款
+                  </Typography>
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {stats.activeLoans} 笔
+                  </Typography>
+                </StatsCard>
+              </DataCard>
+            </Box>
+
+            <Box sx={{ flex: '1 1 300px', minWidth: { xs: '100%', sm: '45%', md: '30%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="info" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    稳定币可借额度
+                  </Typography>
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {formatAmount(stats.stableCoinsLimit)} RToken
+                  </Typography>
+                </StatsCard>
+              </DataCard>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* 治理代币统计 */}
+      <Container maxWidth="lg">
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" component="h2" fontWeight="600" sx={{ mb: 2, color: '#fff' }}>
+            治理代币统计
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+            <Box sx={{ flex: '1 1 250px', minWidth: { xs: '100%', sm: '45%', md: '30%', lg: '22%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="primary" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    治理代币质押数量
+                  </Typography>
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {stats.governanceTokensStaked} SToken
+                  </Typography>
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                    <Button variant="outlined" size="small" onClick={() => openStakingDialog('stake')} sx={{ borderRadius: 2, borderColor: alpha(theme.palette.primary.main, 0.5), color: theme.palette.primary.main, '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: alpha(theme.palette.primary.main, 0.1) } }}>
+                      质押
+                    </Button>
+                    <Button variant="outlined" size="small" onClick={() => openStakingDialog('unstake')} sx={{ borderRadius: 2, borderColor: alpha(theme.palette.error.main, 0.5), color: theme.palette.error.main, '&:hover': { borderColor: theme.palette.error.main, backgroundColor: alpha(theme.palette.error.main, 0.1) } }}>
+                      解除质押
                     </Button>
                   </Box>
-                  <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="primary" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            历史借款
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {stats.totalLoans} 笔
-                          </Typography>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                    
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="success" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            活跃借款
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {stats.activeLoans} 笔
-                          </Typography>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                    
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="warning" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            资金利用率
-                          </Typography>
-                          <Box sx={{ width: '100%', mt: 1 }}>
-                            <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                              {stats.utilizationRate}%
-                            </Typography>
-                            <LinearProgress 
-                              variant="determinate" 
-                              value={stats.utilizationRate} 
-                              sx={{ 
-                                mt: 1, 
-                                height: 8, 
-                                borderRadius: 4,
-                                bgcolor: alpha(theme.palette.warning.main, 0.1),
-                                '& .MuiLinearProgress-bar': {
-                                  bgcolor: theme.palette.warning.main,
-                                  borderRadius: 4,
-                                }
-                              }} 
-                            />
-                          </Box>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                    
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="info" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            稳定币可借额度
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {formatAmount(stats.stableCoinsLimit)} USDC
-                          </Typography>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                  </Grid>
-                </Box>
-                
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h5" component="h2" fontWeight="600" sx={{ mb: 2, color: '#fff' }}>
-                    治理代币统计
+                </StatsCard>
+              </DataCard>
+            </Box>
+
+            <Box sx={{ flex: '1 1 250px', minWidth: { xs: '100%', sm: '45%', md: '30%', lg: '22%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="secondary" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    治理代币持有数量
                   </Typography>
-                  <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="primary" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            治理代币质押数量
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {stats.governanceTokensStaked} TEAM
-                          </Typography>
-                          <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                            <Button 
-                              variant="outlined" 
-                              size="small" 
-                              onClick={() => openStakingDialog('stake')}
-                              sx={{ 
-                                borderRadius: 2,
-                                borderColor: alpha(theme.palette.primary.main, 0.5),
-                                color: theme.palette.primary.main,
-                                '&:hover': {
-                                  borderColor: theme.palette.primary.main,
-                                  backgroundColor: alpha(theme.palette.primary.main, 0.1)
-                                }
-                              }}
-                            >
-                              质押
-                            </Button>
-                            <Button 
-                              variant="outlined" 
-                              size="small" 
-                              onClick={() => openStakingDialog('unstake')}
-                              sx={{ 
-                                borderRadius: 2,
-                                borderColor: alpha(theme.palette.error.main, 0.5),
-                                color: theme.palette.error.main,
-                                '&:hover': {
-                                  borderColor: theme.palette.error.main,
-                                  backgroundColor: alpha(theme.palette.error.main, 0.1)
-                                }
-                              }}
-                            >
-                              解除质押
-                            </Button>
-                          </Box>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                    
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="secondary" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            治理代币持有数量
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {stats.governanceTokensHeld} TEAM
-                          </Typography>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                    
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="success" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            质押分红
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {stats.stakingRewards} TEAM
-                          </Typography>
-                          <Box sx={{ mt: 2 }}>
-                            <Button 
-                              variant="outlined" 
-                              size="small" 
-                              onClick={() => openStakingDialog('claim')}
-                              disabled={parseFloat(stats.stakingRewards.toString()) <= 0}
-                              sx={{ 
-                                borderRadius: 2,
-                                borderColor: alpha(theme.palette.success.main, 0.5),
-                                color: theme.palette.success.main,
-                                '&:hover': {
-                                  borderColor: theme.palette.success.main,
-                                  backgroundColor: alpha(theme.palette.success.main, 0.1)
-                                },
-                                '&.Mui-disabled': {
-                                  borderColor: alpha(theme.palette.success.main, 0.2),
-                                  color: alpha(theme.palette.success.main, 0.3)
-                                }
-                              }}
-                            >
-                              领取分红
-                            </Button>
-                          </Box>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                    
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                      <DataCard>
-                        <StatsCard>
-                          <TeamIconImage size={40} color="error" sx={{ mb: 1 }} />
-                          <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
-                            质押惩罚
-                          </Typography>
-                          <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
-                            {stats.stakingPenalties} TEAM
-                          </Typography>
-                        </StatsCard>
-                      </DataCard>
-                    </Grid>
-                  </Grid>
-                </Box>
-                
-                {/* 最近交易 */}
-                <DataCard>
-                  <CardContent sx={{ p: 4 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <TeamIconImage size={28} color="primary" sx={{ mr: 1 }} />
-                        <NeonText>
-                          <Typography variant="h5" component="h2" fontWeight="600" sx={{ color: '#fff' }}>
-                            最近交易
-                          </Typography>
-                        </NeonText>
-                      </Box>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => navigate('/repayment')}
-                        startIcon={<TeamIconImage size={20} color="inherit" />}
-                        sx={{ 
-                          borderRadius: 2,
-                          background: `linear-gradient(90deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-                          '&:hover': {
-                            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                            boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.5)}`
-                          }
-                        }}
-                      >
-                        前往还款
-                      </Button>
-                    </Box>
-                    
-                    <List sx={{ p: 0 }}>
-                      {stats.recentTransactions.map((transaction, index) => (
-                        <TransactionItem key={index} transactionType={transaction.type}>
-                          <ListItemIcon>
-                            {getTransactionIcon(transaction.type)}
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={<Typography sx={{ color: '#fff' }}>{getTransactionTypeText(transaction.type)}</Typography>}
-                            secondary={
-                              <>
-                                <Typography component="span" variant="body2" sx={{ color: '#fff', opacity: 0.8 }}>
-                                  {formatAmount(transaction.amount)} USDC
-                                </Typography>
-                                <br />
-                                <Typography component="span" variant="caption" sx={{ color: '#fff', opacity: 0.6 }}>
-                                  {formatDate(transaction.timestamp)}
-                                </Typography>
-                              </>
-                            }
-                          />
-                        </TransactionItem>
-                      ))}
-                    </List>
-                  </CardContent>
-                </DataCard>
-              </>
-            )}
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {stats.governanceTokensHeld} SToken
+                  </Typography>
+                </StatsCard>
+              </DataCard>
+            </Box>
+
+            <Box sx={{ flex: '1 1 250px', minWidth: { xs: '100%', sm: '45%', md: '30%', lg: '22%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="success" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    质押分红
+                  </Typography>
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {stats.stakingRewards} SToken
+                  </Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Button variant="outlined" size="small" onClick={() => openStakingDialog('claim')} disabled={parseFloat(stats.stakingRewards.toString()) <= 0} sx={{ borderRadius: 2, borderColor: alpha(theme.palette.success.main, 0.5), color: theme.palette.success.main, '&:hover': { borderColor: theme.palette.success.main, backgroundColor: alpha(theme.palette.success.main, 0.1) }, '&.Mui-disabled': { borderColor: alpha(theme.palette.success.main, 0.2), color: alpha(theme.palette.success.main, 0.3) } }}>
+                      领取分红
+                    </Button>
+                  </Box>
+                </StatsCard>
+              </DataCard>
+            </Box>
+
+            <Box sx={{ flex: '1 1 250px', minWidth: { xs: '100%', sm: '45%', md: '30%', lg: '22%' } }}>
+              <DataCard>
+                <StatsCard>
+                  <TeamIconImage size={40} color="error" sx={{ mb: 1 }} />
+                  <Typography variant="body2" sx={{ color: '#fff' }} gutterBottom>
+                    质押惩罚
+                  </Typography>
+                  <Typography variant="h5" fontWeight="700" sx={{ color: '#fff' }}>
+                    {stats.stakingPenalties} SToken
+                  </Typography>
+                </StatsCard>
+              </DataCard>
+            </Box>
           </Box>
-        </Fade>
+        </Box>
+      </Container>
+
+      {/* 最近交易 */}
+      <Container maxWidth="lg">
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h5" component="h2" fontWeight="600" sx={{ color: '#fff' }}>
+              最近交易
+            </Typography>
+            <IconButton 
+              onClick={handleRefresh} 
+              disabled={refreshing}
+              sx={{ 
+                color: theme.palette.primary.main,
+                '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) } 
+              }}
+            >
+              {refreshing ? <CircularProgress size={24} color="inherit" /> : <RefreshIcon />}
+            </IconButton>
+          </Box>
+          <DataCard>
+            <CardContent sx={{ p: 4 }}>
+              <List sx={{ maxHeight: '300px', overflow: 'auto' }}>
+            {stats.recentTransactions.map((transaction, index) => (
+              <TransactionItem key={index} transactionType={transaction.type}>
+                <ListItemIcon>
+                  {getTransactionIcon(transaction.type)}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: '#fff' }}>
+                        {getTransactionTypeText(transaction.type)}
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500, color: '#fff' }}>
+                        {formatAmount(transaction.amount)} RToken
+                      </Typography>
+                    </Box>
+                  }
+                  secondary={
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                      <Typography variant="caption" sx={{ color: alpha('#fff', 0.7) }}>
+                        {formatDate(transaction.timestamp)}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: alpha('#fff', 0.7) }}>
+                        {formatAddress(transaction.hash)}
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </TransactionItem>
+            ))}
+              </List>
+            </CardContent>
+          </DataCard>
+        </Box>
       </Container>
       
       {/* 质押操作对话框 */}
       <Dialog
         open={stakingDialogOpen}
         onClose={() => setStakingDialogOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm" // 增大对话框宽度
         fullWidth
         PaperProps={{
           sx: {
             background: alpha(theme.palette.background.paper, 0.9),
             backdropFilter: 'blur(10px)',
-            borderRadius: theme.shape.borderRadius * 2,
+            borderRadius: 0, // 改为方形（无圆角）
             boxShadow: `0 8px 32px 0 ${alpha(theme.palette.common.black, 0.3)}`,
+            minHeight: '300px', // 设置最小高度
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`, // 添加边框增强方形效果
           }
         }}
       >
@@ -774,7 +649,7 @@ const Dashboard: React.FC = () => {
            stakingAction === 'unstake' ? '解除代币质押' : 
            '领取质押分红'}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pb: 3 }}>
           {stakingAction !== 'claim' && (
             <TextField
               autoFocus
@@ -825,15 +700,25 @@ const Dashboard: React.FC = () => {
           )}
           
           {stakingAction === 'stake' && (
-            <Typography variant="body2" sx={{ mt: 2, color: alpha('#fff', 0.7) }}>
-              质押治理代币可以获得分红收益，但如果您有借款违约，将会被惩罚。
-            </Typography>
+            <Box sx={{ mt: 3, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: 1 }}>
+              <Typography variant="body1" sx={{ color: alpha('#fff', 0.9), fontWeight: 'medium', mb: 1 }}>
+                质押治理代币说明
+              </Typography>
+              <Typography variant="body2" sx={{ color: alpha('#fff', 0.8) }}>
+                质押治理代币可以获得分红收益，但如果您有借款违约，将会被惩罚。
+              </Typography>
+            </Box>
           )}
           
           {stakingAction === 'unstake' && (
-            <Typography variant="body2" sx={{ mt: 2, color: alpha('#fff', 0.7) }}>
-              解除质押后将无法获得分红，且可能影响您的信用评分和借款额度。
-            </Typography>
+            <Box sx={{ mt: 3, p: 2, bgcolor: alpha(theme.palette.warning.main, 0.1), borderRadius: 1 }}>
+              <Typography variant="body1" sx={{ color: alpha('#fff', 0.9), fontWeight: 'medium', mb: 1 }}>
+                解除质押说明
+              </Typography>
+              <Typography variant="body2" sx={{ color: alpha('#fff', 0.8) }}>
+                解除质押后将无法获得分红，且可能影响您的信用评分和借款额度。
+              </Typography>
+            </Box>
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>

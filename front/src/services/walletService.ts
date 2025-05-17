@@ -13,10 +13,39 @@ import {
   Transaction
 } from '../store/walletSlice';
 import axios from 'axios';
+import { CURRENT_NETWORK } from '../config/contracts';
 
 export class WalletService {
   private provider: ethers.BrowserProvider | null = null;
   private signer: ethers.JsonRpcSigner | null = null;
+  
+  // 强制使用 Sepolia 测试网
+  private currentNetwork = 'sepolia'; // 只允许使用 Sepolia 测试网
+  
+  // 网络配置
+  private networks = {
+    mainnet: {
+      chainId: '0x1',
+      chainName: 'Ethereum Mainnet',
+      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: ['https://mainnet.infura.io/v3/'],
+      blockExplorerUrls: ['https://etherscan.io']
+    },
+    sepolia: {
+      chainId: '0xaa36a7',
+      chainName: 'Sepolia Testnet',
+      nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: ['https://sepolia.infura.io/v3/'],
+      blockExplorerUrls: ['https://sepolia.etherscan.io']
+    },
+    localhost: {
+      chainId: '0x7a69',
+      chainName: 'Localhost 31337',
+      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: ['http://localhost:8545'],
+      blockExplorerUrls: ['']
+    }
+  };
   
   // 获取provider实例
   public getProvider(): ethers.BrowserProvider | null {
@@ -33,6 +62,77 @@ export class WalletService {
     return window.ethereum !== undefined;
   }
 
+  // 检查当前网络是否正确
+  private async checkNetwork(): Promise<boolean> {
+    try {
+      if (!this.provider) return false;
+      
+      const network = await this.provider.getNetwork();
+      const currentChainIdHex = `0x${network.chainId.toString(16)}`;
+      const targetNetwork = this.networks[CURRENT_NETWORK];
+      
+      console.log(`当前网络: ${currentChainIdHex}, 目标网络: ${targetNetwork.chainId}`);
+      
+      if (currentChainIdHex !== targetNetwork.chainId) {
+        const confirmed = window.confirm(`请切换到 ${targetNetwork.chainName} 网络以使用本应用。点击确定切换网络。`);
+        
+        if (confirmed) {
+          return await this.switchNetwork();
+        } else {
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('检查网络失败:', error);
+      return false;
+    }
+  }
+  
+  // 切换到指定网络
+  private async switchNetwork(): Promise<boolean> {
+    try {
+      const targetNetwork = this.networks[CURRENT_NETWORK];
+      
+      try {
+        // 尝试切换到现有网络
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: targetNetwork.chainId }],
+        });
+        return true;
+      } catch (switchError) {
+        // 如果网络不存在，添加该网络
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: targetNetwork.chainId,
+                  chainName: targetNetwork.chainName,
+                  nativeCurrency: targetNetwork.nativeCurrency,
+                  rpcUrls: targetNetwork.rpcUrls,
+                  blockExplorerUrls: targetNetwork.blockExplorerUrls
+                },
+              ],
+            });
+            return true;
+          } catch (addError) {
+            console.error('添加网络失败:', addError);
+            return false;
+          }
+        }
+        console.error('切换网络失败:', switchError);
+        return false;
+      }
+    } catch (error) {
+      console.error('切换网络失败:', error);
+      return false;
+    }
+  }
+
   // 连接钱包
   public async connectWallet(): Promise<boolean> {
     try {
@@ -46,7 +146,51 @@ export class WalletService {
       }
       
       console.log('MetaMask已安装，window.ethereum:', window.ethereum);
-
+      
+      // 先尝试切换到 Sepolia 测试网，然后再连接钱包
+      try {
+        const targetNetwork = this.networks['sepolia'];
+        console.log('尝试切换到 Sepolia 测试网...');
+        
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: targetNetwork.chainId }],
+          });
+          console.log('Sepolia 测试网切换成功');
+        } catch (switchError) {
+          // 如果网络不存在，添加该网络
+          if (switchError.code === 4902) {
+            try {
+              console.log('添加 Sepolia 测试网...');
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: targetNetwork.chainId,
+                    chainName: targetNetwork.chainName,
+                    nativeCurrency: targetNetwork.nativeCurrency,
+                    rpcUrls: targetNetwork.rpcUrls,
+                    blockExplorerUrls: targetNetwork.blockExplorerUrls
+                  },
+                ],
+              });
+              console.log('Sepolia 测试网添加成功');
+            } catch (addError) {
+              console.error('添加 Sepolia 测试网失败:', addError);
+              alert(`添加 Sepolia 测试网失败: ${addError.message}\n请手动切换网络。`);
+              return false;
+            }
+          } else {
+            console.error('切换到 Sepolia 测试网失败:', switchError);
+            alert(`切换到 Sepolia 测试网失败: ${switchError.message}\n请手动切换网络。`);
+            return false;
+          }
+        }
+      } catch (error) {
+        console.error('切换网络过程中出错:', error);
+      }
+      
       try {
         // 创建provider
         console.log('创建provider...');
@@ -60,6 +204,13 @@ export class WalletService {
         
         if (!accounts || accounts.length === 0) {
           console.error('未获取到账户');
+          return false;
+        }
+        
+        // 检查并切换到正确的网络
+        const networkCorrect = await this.checkNetwork();
+        if (!networkCorrect) {
+          console.error('网络检查失败或用户取消切换');
           return false;
         }
 
@@ -81,7 +232,7 @@ export class WalletService {
         console.log('获取chainId...');
         const network = await this.provider.getNetwork();
         const chainId = network.chainId.toString();
-        console.log('链ID:', chainId);
+        console.log('链 ID:', chainId);
 
         // 更新Redux状态
         console.log('更新Redux状态...');

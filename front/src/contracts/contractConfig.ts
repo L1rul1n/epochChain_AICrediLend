@@ -1,6 +1,12 @@
-// 智能合约地址 - 需要替换为实际部署的合约地址
-export const CORE_LENDING_ADDRESS = '0x123456789abcdef123456789abcdef123456789a'; // 替换为实际部署的合约地址
-export const LENDING_POOL_ADDRESS = '0x987654321fedcba987654321fedcba987654321'; // 替换为实际部署的合约地址
+// 从 contracts.ts 中导入合约地址
+import { getContractAddresses, CURRENT_NETWORK } from '../config/contracts';
+
+// 获取 Sepolia 测试网的合约地址
+const contractAddresses = getContractAddresses();
+
+// 智能合约地址 - 使用 Sepolia 测试网地址
+export const CORE_LENDING_ADDRESS = contractAddresses.coreLending; // Sepolia 测试网合约地址
+export const LENDING_POOL_ADDRESS = contractAddresses.lendingPool; // Sepolia 测试网合约地址
 
 // CoreLending合约ABI
 export const CORE_LENDING_ABI = [
@@ -14,6 +20,11 @@ export const CORE_LENDING_ABI = [
       {
         "internalType": "address",
         "name": "_blacklist",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_auctionManager",
         "type": "address"
       }
     ],
@@ -296,20 +307,16 @@ export const LENDING_POOL_ABI = [
 ] as const;
 
 /**
- * 生成Etherscan链接
+ * 生成区块浏览器链接
  * @param txHash 交易哈希
- * @param chainId 链ID
- * @returns Etherscan链接
+ * @returns 区块浏览器链接
  */
-export const getEtherscanLink = (txHash: string, chainId: number = 11155111) => {
-  // 根据chainId决定使用哪个网络的Etherscan
-  let baseUrl = 'https://etherscan.io';
+export const getEtherscanLink = (txHash: string) => {
+  // 使用 contracts.ts 中的区块浏览器配置
+  const { BLOCK_EXPLORER_URLS, CURRENT_NETWORK } = require('../config/contracts');
   
-  if (chainId === 11155111) {
-    baseUrl = 'https://sepolia.etherscan.io';
-  } else if (chainId === 1) {
-    baseUrl = 'https://etherscan.io';
-  }
+  // 获取当前网络的区块浏览器URL
+  const baseUrl = BLOCK_EXPLORER_URLS[CURRENT_NETWORK];
   
   return `${baseUrl}/tx/${txHash}`;
 };

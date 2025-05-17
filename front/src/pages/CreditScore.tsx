@@ -263,26 +263,12 @@ const CreditScore: React.FC = () => {
       {/* 科技风格背景 */}
       <TechBackground />
       
-      {/* 扫描线效果 */}
-      <Box sx={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '3px',
-        background: theme.palette.primary.main,
-        boxShadow: `0 0 10px ${theme.palette.primary.main}, 0 0 20px ${theme.palette.primary.main}`,
-        animation: `${scanEffect} 3s linear infinite`,
-        zIndex: 1,
-      }} />
+      {/* 扫描线效果已移除 */}
       
       <Container maxWidth="lg">
         <Fade in={true} timeout={800}>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-              <PulseContainer>
-                <TeamIconImage size={50} color="primary" sx={{ mr: 2 }} />
-              </PulseContainer>
               <NeonText>
                 <Typography 
                   variant="h3" 
@@ -296,7 +282,7 @@ const CreditScore: React.FC = () => {
                     textShadow: `0 0 10px ${theme.palette.primary.main}`,
                   }}
                 >
-                  区块链信用评分系统
+                  AI 信用评分系统
                 </Typography>
               </NeonText>
             </Box>
@@ -316,9 +302,6 @@ const CreditScore: React.FC = () => {
                 }}>
                   <CardContent sx={{ p: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <PulseContainer>
-                        <TeamIconImage size={32} color="primary" sx={{ mr: 2 }} />
-                      </PulseContainer>
                       <NeonText>
                         <Typography variant="h5" component="h2" fontWeight="700" sx={{ 
                           color: '#fff',
@@ -426,7 +409,6 @@ const CreditScore: React.FC = () => {
                 }}>
                   <CardContent sx={{ p: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <TeamIconImage size={28} color="secondary" sx={{ mr: 1 }} />
                       <NeonText>
                         <Typography variant="h5" component="h2" fontWeight="600" sx={{ 
                           color: '#fff',

@@ -31,7 +31,8 @@ export const TransactionStatus: React.FC<TransactionStatusProps> = ({
 }) => {
   if (!txHash || status === 'idle') return null;
 
-  const etherscanLink = getEtherscanLink(txHash, chainId);
+  // 现在 getEtherscanLink 只接受一个参数（交易哈希）
+  const etherscanLink = getEtherscanLink(txHash);
 
   return (
     <Collapse in={true}>

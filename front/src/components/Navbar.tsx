@@ -33,9 +33,9 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const menuItems = [
-    { text: '信用评分', icon: <TeamIconImage size={24} />, path: '/credit-score' },
-    { text: '借贷', icon: <TeamIconImage size={24} />, path: '/lending' },
-    { text: '仪表板', icon: <TeamIconImage size={24} />, path: '/dashboard' },
+    { text: '信用评分', icon: null, path: '/credit-score' },
+    { text: '借贷', icon: null, path: '/lending' },
+    { text: '个人中心', icon: null, path: '/dashboard' },
   ];
 
   const handleDrawerToggle = () => {
@@ -74,20 +74,23 @@ const Navbar: React.FC = () => {
             <MenuIcon />
           </IconButton>
 
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ 
-              flexGrow: 1, 
-              cursor: 'pointer',
-              '&:hover': {
-                opacity: 0.8
-              }
-            }}
-            onClick={() => navigate('/')}
-          >
-            AI信用借贷平台
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <TeamIconImage size={28} color="primary" sx={{ mr: 1 }} />
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': {
+                  opacity: 0.8
+                }
+              }}
+              onClick={() => navigate('/')}
+            >
+              <Box component="img" src="/icon.jpg" alt="logo" sx={{ width: 24, height: 24, mr: 1, display: 'inline-block', verticalAlign: 'middle', borderRadius: '50%' }} />
+              AICrediLend
+            </Typography>
+          </Box>
 
           <Box sx={{ display: { xs: 'none', md: 'flex' }, mr: 2 }}>
   {isConnected ? (
@@ -145,9 +148,9 @@ const Navbar: React.FC = () => {
       borderRadius: '20px',
       textTransform: 'none',
       fontWeight: 'bold',
-      background: 'linear-gradient(90deg, #3a7bd5, #00d2ff)',
+      background: 'linear-gradient(90deg, #00b09b, #96c93d)',
       '&:hover': {
-        background: 'linear-gradient(90deg, #2b68c0, #00b3db)',
+        background: 'linear-gradient(90deg, #009688, #8bc34a)',
       }
     }}
   >

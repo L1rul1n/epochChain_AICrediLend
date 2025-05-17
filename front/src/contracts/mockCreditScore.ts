@@ -76,12 +76,12 @@ export const useCreditScore = (address?: string) => {
       const lastChar = walletAddress.slice(-1).toLowerCase();
       
       // 2. 根据地址生成基础分数
-      let baseScore = 75; // 默认分数
+      let baseScore = 65; // 默认分数
       
       if (lastChar >= '0' && lastChar <= '9') {
-        baseScore = 70 + parseInt(lastChar) * 3;
+        baseScore = 60 + parseInt(lastChar) * 0.8;
       } else if (lastChar >= 'a' && lastChar <= 'f') {
-        baseScore = 85 + (lastChar.charCodeAt(0) - 'a'.charCodeAt(0)) * 2;
+        baseScore = 63 + (lastChar.charCodeAt(0) - 'a'.charCodeAt(0)) * 1.2;
       }
       
       // 3. 模拟贷款记录调整分数

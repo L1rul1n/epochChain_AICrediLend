@@ -12,12 +12,12 @@ export const CONTRACT_ADDRESSES = {
   
   // 测试网合约地址 (Sepolia)
   sepolia: {
-    coreLending: '0x1234567890123456789012345678901234567890', // 示例地址
-    lendingPool: '0x2345678901234567890123456789012345678901', // 示例地址
-    blackList: '0x3456789012345678901234567890123456789012', // 示例地址
-    auctionManager: '0x4567890123456789012345678901234567890123', // 示例地址
-    tokenA: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC
-    tokenB: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
+    tokenA: '0xE00248ccc83a469A3476c2E212c726fcF938338B', // USDC
+    tokenB: '0xfcb1cd4BB46878A21106D9430Ad5bcB4526a5bA4', // TEAM
+    blackList: '0x37CBEB69A2Cd1e355C69B67b05D950AEdb05D148', // Blacklist
+    lendingPool: '0x08fC27d28b7bbF8C9ae91D9F8e2793C7c17AF74A', // LendingPool
+    auctionManager: '0x4834C550b211351a48760661492E849eecA5b23A', // AuctionManager
+    coreLending: '0xE128555F42Dd6bE70d415D753ce2036e94675844' // CoreLending
   },
   
   // 本地开发网络
@@ -32,7 +32,7 @@ export const CONTRACT_ADDRESSES = {
 };
 
 // 当前网络
-export const CURRENT_NETWORK = 'localhost'; // 'mainnet', 'sepolia', 'localhost'
+export const CURRENT_NETWORK = 'sepolia'; // 'mainnet', 'sepolia', 'localhost'
 
 // 获取当前网络的合约地址
 export const getContractAddresses = () => {

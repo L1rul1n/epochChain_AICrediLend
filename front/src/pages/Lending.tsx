@@ -157,7 +157,9 @@ interface LoanInfo {
 
 const Lending: React.FC = () => {
   const theme = useTheme();
-  const { address, isConnected } = useWallet();
+  const { address, isConnected, connectWallet } = useWallet();
+  // 使用 useLending hook 获取借款相关函数
+  
   const [activeStep, setActiveStep] = useState(0);
   const [loanInfo, setLoanInfo] = useState<LoanInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -287,7 +289,7 @@ const Lending: React.FC = () => {
     
     // 验证借款金额不能超过最大额度
     if (parseInt(loanAmount) > maxAmount) {
-      setError(`借款金额不能超过您的可借额度 ${maxAmount} USDC`);
+      setError(`借款金额不能超过您的可借额度 ${maxAmount} RToken`);
       return;
     }
     
@@ -364,19 +366,112 @@ const Lending: React.FC = () => {
     try {
       // 计算借款期限（秒）
       const durationInSeconds = loanInfo.duration * 24 * 60 * 60; // 天数转换为秒
+      console.log(`准备调用无抵押借款: 金额=${loanInfo.amount.toString()}, 期限=${durationInSeconds}秒`);
       
-      // 调用智能合约进行无抵押借款
-      const tx = await borrowWithoutCollateral(
-        loanInfo.amount.toString(), 
-        durationInSeconds
-      );
+      // 打印调试信息
+      console.log('开始调用借款合约...');
+      console.log('借款金额:', loanInfo.amount.toString());
+      console.log('借款期限(秒):', durationInSeconds);
       
-      // 交易已发送，等待确认
-      console.log('交易已发送:', tx.hash);
-      console.log('交易链接:', tx.etherscanLink);
+      // 检查钱包是否安装
+      if (typeof window.ethereum === 'undefined') {
+        alert('请安装 MetaMask 钱包插件');
+        window.open('https://metamask.io/download/', '_blank');
+        throw new Error('未安装 MetaMask');
+      }
       
-      // 交易状态将由 useEffect 监听并处理
-      // 不需要在这里设置状态，因为 useEffect 会处理
+      // 请求用户连接
+      console.log('请求用户连接钱包...');
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      console.log('获取到账户:', accounts);
+      
+      // 切换到 Sepolia 测试网
+      console.log('切换到 Sepolia 测试网...');
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xaa36a7' }], // Sepolia 测试网的 chainId
+        });
+        console.log('Sepolia 测试网切换成功');
+      } catch (switchError) {
+        // 如果网络不存在，添加该网络
+        if (switchError.code === 4902) {
+          console.log('添加 Sepolia 测试网...');
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: '0xaa36a7',
+                chainName: 'Sepolia Testnet',
+                nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://sepolia.infura.io/v3/'],
+                blockExplorerUrls: ['https://sepolia.etherscan.io']
+              },
+            ],
+          });
+          console.log('Sepolia 测试网添加成功');
+        } else {
+          console.error('切换到 Sepolia 测试网失败:', switchError);
+          alert(`切换到 Sepolia 测试网失败: ${switchError.message}\n请手动切换网络。`);
+          throw new Error('切换网络失败');
+        }
+      }
+      
+      // 直接调用合约
+      console.log('创建 provider...');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      console.log('provider 创建成功');
+      
+      console.log('获取 signer...');
+      const signer = await provider.getSigner();
+      console.log('signer 获取成功:', await signer.getAddress());
+      
+      // 从合约配置中获取合约地址和 ABI
+      const { CORE_LENDING_ADDRESS, CORE_LENDING_ABI } = require('../contracts/contractConfig');
+      console.log('合约地址:', CORE_LENDING_ADDRESS);
+      
+      // 创建合约实例
+      console.log('创建合约实例...');
+      const contract = new ethers.Contract(CORE_LENDING_ADDRESS, CORE_LENDING_ABI, signer);
+      console.log('合约实例创建成功');
+      
+      // 转换金额为 Wei - RToken 有 6 位小数
+      const amountInWei = ethers.parseUnits(loanInfo.amount.toString(), 6);
+      console.log('金额(Wei):', amountInWei.toString());
+      
+      // 调用合约的 borrowWithoutCollateral 方法
+      console.log('调用 borrowWithoutCollateral 方法，金额:', amountInWei.toString(), '期限(秒):', durationInSeconds);
+      
+      let tx;
+      try {
+        // 先检查是否可以估算 gas
+        const gasEstimate = await contract.borrowWithoutCollateral.estimateGas(amountInWei, durationInSeconds);
+        console.log('Gas 估算成功，预计需要 gas:', gasEstimate.toString());
+        
+        // 发送交易，并增加 gas 限制
+        tx = await contract.borrowWithoutCollateral(amountInWei, durationInSeconds, {
+          gasLimit: parseInt(gasEstimate.toString()) * 2 // 增加 100% 的 gas 限制
+        });
+        console.log('交易已发送:', tx);
+      } catch (error) {
+        console.error('借款交易失败:', error);
+        
+        // 尝试直接发送交易，不估算 gas
+        console.log('尝试直接发送交易，不估算 gas');
+        tx = await contract.borrowWithoutCollateral(amountInWei, durationInSeconds, {
+          gasLimit: 3000000 // 设置一个足够高的固定 gas 限制
+        });
+        console.log('交易已发送:', tx);
+      }
+      
+      // 等待交易确认
+      const receipt = await tx.wait();
+      console.log('交易已确认:', receipt);
+      
+      // 交易已发送，设置交易哈希和状态
+      setTransactionHash(tx.hash);
+      setActiveStep(2); // 移动到完成步骤
+      setCompleted(true);
     } catch (err: any) {
       console.error('借款失败:', err);
       setError(err.message || '借款交易失败');
@@ -415,10 +510,8 @@ const Lending: React.FC = () => {
     const maxAmount = loanInfo.maxAmount;
     const ratio = amount / maxAmount;
     
-    if (ratio < 0.3) return '低';
-    if (ratio < 0.6) return '中';
-    if (ratio < 0.8) return '高';
-    return '极高';
+    // 将风险等级默认设置为低
+    return '低';
   };
   
   const getRiskColor = (amount: number): 'success' | 'info' | 'warning' | 'error' => {
@@ -472,7 +565,7 @@ const Lending: React.FC = () => {
                           可借额度
                         </Typography>
                         <Typography variant="h6" sx={{ color: theme.palette.success.main, fontWeight: 600 }}>
-                          {getCreditLimitInfo().maxAmount} USDC
+                          {getCreditLimitInfo().maxAmount} RToken
                         </Typography>
                       </Grid>
                     </Grid>
@@ -482,7 +575,7 @@ const Lending: React.FC = () => {
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="subtitle1" fontWeight="500" gutterBottom>
-                      借款金额 (USDC)
+                      借款金额 (RToken)
                     </Typography>
                     <TextField
                       fullWidth
@@ -495,7 +588,7 @@ const Lending: React.FC = () => {
                         // 验证输入的金额
                         const amount = parseInt(e.target.value);
                         if (amount > maxAmount) {
-                          setError(`借款金额不能超过您的可借额度 ${maxAmount} USDC`);
+                          setError(`借款金额不能超过您的可借额度 ${maxAmount} RToken`);
                         } else {
                           setError('');
                         }
@@ -525,7 +618,7 @@ const Lending: React.FC = () => {
                           max={loanInfo ? loanInfo.maxAmount : getCreditLimitInfo().maxAmount}
                           step={100}
                           valueLabelDisplay="auto"
-                          valueLabelFormat={(value) => `${value} USDC`}
+                          valueLabelFormat={(value) => `${value} RToken`}
                           sx={{
                             color: theme.palette.primary.main,
                             '& .MuiSlider-thumb': {
@@ -548,7 +641,7 @@ const Lending: React.FC = () => {
                       {isConnected ? (
                         <>
                           <Typography variant="caption" color="primary" sx={{ fontWeight: 500 }}>
-                            可借额度: {loanInfo ? formatAmount(loanInfo.maxAmount) : formatAmount(getCreditLimitInfo().maxAmount)} USDC
+                            可借额度: {loanInfo ? formatAmount(loanInfo.maxAmount) : formatAmount(getCreditLimitInfo().maxAmount)} RToken
                           </Typography>
                           
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -614,13 +707,17 @@ const Lending: React.FC = () => {
                     variant="contained"
                     color="primary"
                     onClick={handleNext}
-                    endIcon={loading ? <CircularProgress size={20} color="inherit" /> : <TeamLogo fontSize="small" />}
+                    endIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                     disabled={loading || !isConnected}
                     sx={{
                       py: 1.2,
                       px: 3,
                       fontSize: '1rem',
                       fontWeight: 600,
+                      background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #009688, #8bc34a)',
+                      }
                     }}
                   >
                     {loading ? '计算中...' : '计算借款详情'}
@@ -732,7 +829,7 @@ const Lending: React.FC = () => {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <Typography variant="body2" color="text.secondary">借款金额</Typography>
                                   <Typography variant="body1" fontWeight="500">
-                                    {formatAmount(loanInfo.amount)} USDC
+                                    {formatAmount(loanInfo.amount)} RToken
                                   </Typography>
                                 </Box>
                                 
@@ -764,7 +861,7 @@ const Lending: React.FC = () => {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <Typography variant="body2" color="text.secondary">应还总额</Typography>
                                   <Typography variant="body1" fontWeight="500" color={theme.palette.primary.main}>
-                                    {formatAmount(loanInfo.totalRepayment)} USDC
+                                    {formatAmount(loanInfo.totalRepayment)} RToken
                                   </Typography>
                                 </Box>
                                 
@@ -778,7 +875,7 @@ const Lending: React.FC = () => {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <Typography variant="body2" color="text.secondary">预计信用变化</Typography>
                                   <Chip 
-                                    label="+2分" 
+                                    label="信用会提升" 
                                     color="success" 
                                     size="small" 
                                     sx={{ fontWeight: 500 }}
@@ -850,6 +947,10 @@ const Lending: React.FC = () => {
                             px: 3,
                             fontSize: '1rem',
                             fontWeight: 600,
+                            background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                            '&:hover': {
+                              background: 'linear-gradient(90deg, #009688, #8bc34a)',
+                            }
                           }}
                         >
                           {loading ? '处理中...' : '确认借款'}
@@ -934,9 +1035,7 @@ const Lending: React.FC = () => {
       <Box sx={{ py: 4 }}>
         <GlassCard sx={{ mb: 4 }}>
           <CardContent sx={{ p: 4, textAlign: 'center' }}>
-            <Box sx={{ mb: 3 }}>
-              <TeamIconImage size={60} color="success" />
-            </Box>
+            {/* 已移除logo */}
             <Typography variant="h4" component="h2" fontWeight="700" sx={{ mb: 2, color: theme.palette.success.main }}>
               借款成功！
             </Typography>
@@ -959,7 +1058,13 @@ const Lending: React.FC = () => {
               variant="contained"
               color="primary"
               onClick={handleReset}
-              sx={{ mt: 2 }}
+              sx={{ 
+                mt: 2,
+                background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #009688, #8bc34a)',
+                }
+              }}
             >
               返回借款页面
             </Button>
@@ -1009,7 +1114,7 @@ const Lending: React.FC = () => {
                             利息总额
                           </Typography>
                           <Typography variant="body1" fontWeight="500" sx={{ color: '#fff' }}>
-                            {formatAmount(loan.totalInterest)} USDC
+                            {formatAmount(loan.totalInterest)} RToken
                           </Typography>
                         </LoanDetailItem>
                         
@@ -1023,7 +1128,7 @@ const Lending: React.FC = () => {
                             </Tooltip>
                           </Box>
                           <Typography variant="body1" fontWeight="500" sx={{ color: '#fff' }}>
-                            {formatAmount(loan.lenderInterest)} USDC
+                            {formatAmount(loan.lenderInterest)} RToken
                           </Typography>
                         </LoanDetailItem>
                         
@@ -1037,7 +1142,7 @@ const Lending: React.FC = () => {
                             </Tooltip>
                           </Box>
                           <Typography variant="body1" fontWeight="500" sx={{ color: '#fff' }}>
-                            {formatAmount(loan.riskPoolInterest)} USDC
+                            {formatAmount(loan.riskPoolInterest)} RToken
                           </Typography>
                         </LoanDetailItem>
                         
@@ -1046,7 +1151,7 @@ const Lending: React.FC = () => {
                             还款总额
                           </Typography>
                           <Typography variant="body1" fontWeight="500" sx={{ color: '#fff' }}>
-                            {formatAmount(loan.totalRepayment)} USDC
+                            {formatAmount(loan.totalRepayment)} RToken
                           </Typography>
                         </LoanDetailItem>
                         
@@ -1077,7 +1182,13 @@ const Lending: React.FC = () => {
                           color="primary"
                           size="small"
                           onClick={() => repay(index)}
-                          sx={{ mt: 2 }}
+                          sx={{ 
+                            mt: 2,
+                            background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                            '&:hover': {
+                              background: 'linear-gradient(90deg, #009688, #8bc34a)',
+                            }
+                          }}
                           fullWidth
                         >
                           还款
@@ -1116,7 +1227,7 @@ const Lending: React.FC = () => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              去中心化借贷平台
+              AI 赋能的链上无抵押信用借贷协议
             </Typography>
             
             <Stepper 

@@ -89,7 +89,7 @@ const TokenModelIntro: React.FC = () => {
                   mb: 3,
                 }}
               >
-                治理代币 (GOV)
+                治理代币 (SToken)
               </Typography>
               
               <List>
@@ -169,7 +169,7 @@ const TokenModelIntro: React.FC = () => {
                   mb: 3,
                 }}
               >
-                稳定币 (USDC)
+                稳定币 (RToken)
               </Typography>
               
               <List>

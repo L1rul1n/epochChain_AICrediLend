@@ -25,17 +25,29 @@ export const TeamIconImage: React.FC<TeamIconImageProps> = ({
   
   return (
     <Box
-      component="img"
-      src="/icon.jpg"
-      alt="队徽"
       sx={{
         width: finalSize,
         height: finalSize,
-        objectFit: 'contain',
-        display: 'inline-block',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         verticalAlign: 'middle',
         borderRadius: '50%',
-        filter: color ? `drop-shadow(0 0 1px ${typeof color === 'string' ? color : theme.palette.primary.main})` : 'none',
+        backgroundColor: typeof color === 'string' ? color : 
+                        color === 'primary' ? theme.palette.primary.main :
+                        color === 'secondary' ? theme.palette.secondary.main :
+                        color === 'success' ? theme.palette.success.main :
+                        color === 'error' ? theme.palette.error.main :
+                        color === 'info' ? theme.palette.info.main :
+                        color === 'inherit' ? 'currentColor' : theme.palette.primary.main,
+        boxShadow: `0 0 5px ${typeof color === 'string' ? color : 
+                  color === 'primary' ? theme.palette.primary.main :
+                  color === 'secondary' ? theme.palette.secondary.main :
+                  color === 'success' ? theme.palette.success.main :
+                  color === 'error' ? theme.palette.error.main :
+                  color === 'info' ? theme.palette.info.main :
+                  color === 'inherit' ? 'currentColor' : theme.palette.primary.main}`,
+        opacity: 0.8,
         ...sx
       }}
       {...props}

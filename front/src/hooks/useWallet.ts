@@ -42,8 +42,6 @@ export const useWallet = () => {
       '97': 'BSC Testnet',
       '42161': 'Arbitrum One',
       '421613': 'Arbitrum Goerli',
-      '10': 'Optimism',
-      '420': 'Optimism Goerli',
       '43114': 'Avalanche C-Chain',
       '43113': 'Avalanche Fuji'
     };

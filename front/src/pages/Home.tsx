@@ -53,10 +53,8 @@ const Home: React.FC = () => {
       <Container maxWidth="lg">
         <Fade in={true} timeout={800}>
           <Box>
-            <Box sx={{ textAlign: 'center', mb: 8 }}>
-              <PulseContainer>
-                <TeamIconImage size={120} color="primary" sx={{ mb: 3 }} />
-              </PulseContainer>
+            <Box sx={{ textAlign: 'center', mb: 8, mt: 10 }}>
+              {/* 图标已移除 */}
               
               <NeonText>
                 <Typography 
@@ -72,7 +70,7 @@ const Home: React.FC = () => {
                     animation: `${fadeIn} 1s ease-out`,
                   }}
                 >
-                  AI信用评分借贷协议
+                  AI 赋能的链上无抵押信用借贷协议
                 </Typography>
               </NeonText>
               
@@ -89,7 +87,7 @@ const Home: React.FC = () => {
                   color: '#fff',
                 }}
               >
-                基于区块链技术的去中心化信用评分和借贷平台，为您提供透明、安全、高效的金融服务
+                创新的去中心化金融协议，通过AI算法分析链上行为，实现无抵押借贷，重新定义DeFi信用体系
               </Typography>
               
               <Button
@@ -156,7 +154,7 @@ const Home: React.FC = () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      background: 'url("/credit-score.jpg")',
+                      background: 'url("/img_v3_02md_c3938e0a-d1a8-4fd5-a751-a6b401fbae4g.jpg")',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       opacity: 0.6,
@@ -187,7 +185,7 @@ const Home: React.FC = () => {
                       AI信用评分
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 2, color: '#fff', opacity: 0.8 }}>
-                      基于链上行为的智能信用评分系统，帮助您建立可信的信用记录。
+                      采用多维度链上数据分析，精准评估用户信用状况，提供个性化借贷方案。
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>
@@ -232,7 +230,7 @@ const Home: React.FC = () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      background: 'url("/risk-control.jpg")',
+                      background: 'url("/img_v3_02md_b70e156a-30e1-4158-ba20-3cdd4ea3f68g.jpg")',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       opacity: 0.6,
@@ -263,7 +261,7 @@ const Home: React.FC = () => {
                       风控检测
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 2, color: '#fff', opacity: 0.8 }}>
-                      智能风控系统，实时监控交易行为，保障资金安全。
+                      基于机器学习的风险识别系统，实时预警异常交易，保障协议安全运行。
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>
@@ -308,7 +306,7 @@ const Home: React.FC = () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      background: 'url("/dual-token.jpg")',
+                      background: 'url("/img_v3_02md_6e6b4f3c-d898-4d34-be12-074c4b890dfg.jpg")',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       opacity: 0.6,
@@ -339,7 +337,7 @@ const Home: React.FC = () => {
                       双代币模型
                     </Typography>
                     <Typography variant="body2" sx={{ mb: 2, color: '#fff', opacity: 0.8 }}>
-                      创新的双代币经济模型，平衡治理与流动性。
+                      独特的双代币激励机制，优化资本效率，实现可持续发展与价值捕获。
                     </Typography>
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>
@@ -362,141 +360,7 @@ const Home: React.FC = () => {
               </Box>
             </Stack>
             
-            {/* 平台特点部分 */}
-            <Box sx={{ mt: 10, mb: 6 }}>
-              <Typography 
-                variant="h3" 
-                component="h2" 
-                sx={{ 
-                  textAlign: 'center', 
-                  mb: 6,
-                  color: '#fff',
-                  fontWeight: 700,
-                  textShadow: `0 0 10px ${theme.palette.primary.main}`,
-                }}
-              >
-                平台特点
-              </Typography>
-              
-              <Grid container spacing={4}>
-                {/* 特点一：去中心化 */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Box sx={{ 
-                    textAlign: 'center', 
-                    p: 3,
-                    height: '100%',
-                    background: alpha(theme.palette.background.paper, 0.4),
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: theme.shape.borderRadius * 2,
-                    transition: 'all 0.3s ease',
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: `0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
-                      background: alpha(theme.palette.background.paper, 0.6),
-                    }
-                  }}>
-                    <Box sx={{ 
-                      width: 80, 
-                      height: 80, 
-                      borderRadius: '50%', 
-                      background: alpha(theme.palette.primary.main, 0.1),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 20px',
-                      color: theme.palette.primary.main,
-                    }}>
-                      <TeamIconImage size={40} color="primary" />
-                    </Box>
-                    <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600, color: '#fff' }}>
-                      去中心化架构
-                    </Typography>
-                    <Typography sx={{ color: '#fff', opacity: 0.8 }}>
-                      基于区块链技术构建的完全去中心化系统，无需信任第三方，保障数据安全和交易透明。
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                {/* 特点二：AI驱动 */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Box sx={{ 
-                    textAlign: 'center', 
-                    p: 3,
-                    height: '100%',
-                    background: alpha(theme.palette.background.paper, 0.4),
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: theme.shape.borderRadius * 2,
-                    transition: 'all 0.3s ease',
-                    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: `0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px ${alpha(theme.palette.secondary.main, 0.3)}`,
-                      background: alpha(theme.palette.background.paper, 0.6),
-                    }
-                  }}>
-                    <Box sx={{ 
-                      width: 80, 
-                      height: 80, 
-                      borderRadius: '50%', 
-                      background: alpha(theme.palette.secondary.main, 0.1),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 20px',
-                      color: theme.palette.secondary.main,
-                    }}>
-                      <TeamIconImage size={40} color="secondary" />
-                    </Box>
-                    <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600, color: '#fff' }}>
-                      AI智能评分
-                    </Typography>
-                    <Typography sx={{ color: '#fff', opacity: 0.8 }}>
-                      采用先进的人工智能算法，分析链上行为和交易历史，提供精准的信用评分和风险预测。
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                {/* 特点三：安全保障 */}
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Box sx={{ 
-                    textAlign: 'center', 
-                    p: 3,
-                    height: '100%',
-                    background: alpha(theme.palette.background.paper, 0.4),
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: theme.shape.borderRadius * 2,
-                    transition: 'all 0.3s ease',
-                    border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: `0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px ${alpha(theme.palette.warning.main, 0.3)}`,
-                      background: alpha(theme.palette.background.paper, 0.6),
-                    }
-                  }}>
-                    <Box sx={{ 
-                      width: 80, 
-                      height: 80, 
-                      borderRadius: '50%', 
-                      background: alpha(theme.palette.warning.main, 0.1),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 20px',
-                      color: theme.palette.warning.main,
-                    }}>
-                      <TeamIconImage size={40} color="warning" />
-                    </Box>
-                    <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600, color: '#fff' }}>
-                      多重安全保障
-                    </Typography>
-                    <Typography sx={{ color: '#fff', opacity: 0.8 }}>
-                      智能合约审计、实时风控监测和多签名钱包技术，全方位保障用户资产安全和交易安全。
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
+            {/* 平台特点部分已移除 */}
           </Box>
         </Fade>
       </Container>

@@ -33,9 +33,45 @@ export const useLending = () => {
   // 创建合约实例
   const getContract = async () => {
     if (typeof window.ethereum !== 'undefined') {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      return new ethers.Contract(CORE_LENDING_ADDRESS, CORE_LENDING_ABI, signer);
+      try {
+        // 检查当前网络
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        const chainId = network.chainId.toString(16);
+        const currentChainIdHex = `0x${chainId}`;
+        
+        // Sepolia 测试网的 chainId 是 0xaa36a7 (11155111)
+        const targetChainId = '0xaa36a7';
+        
+        // 如果不是 Sepolia网络，尝试切换
+        if (currentChainIdHex !== targetChainId) {
+          console.log(`当前网络不是 Sepolia，尝试切换... 当前: ${currentChainIdHex}, 目标: ${targetChainId}`);
+          
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: targetChainId }],
+            });
+            
+            // 等待网络切换
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // 重新获取网络信息
+            const updatedProvider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await updatedProvider.getSigner();
+            return new ethers.Contract(CORE_LENDING_ADDRESS, CORE_LENDING_ABI, signer);
+          } catch (error) {
+            console.error('切换网络失败:', error);
+            throw new Error('请切换到 Sepolia 测试网后再尝试');
+          }
+        }
+        
+        const signer = await provider.getSigner();
+        return new ethers.Contract(CORE_LENDING_ADDRESS, CORE_LENDING_ABI, signer);
+      } catch (error) {
+        console.error('创建合约实例失败:', error);
+        throw error;
+      }
     } else {
       throw new Error('请安装 MetaMask!');
     }
@@ -178,17 +214,26 @@ export const useLending = () => {
       setTxStatus('pending');
       console.log(`调用借款函数: 金额=${amount}, 抵押品=${collateralAmount}, 期限=${duration}`);
       
-      const amountInWei = ethers.parseEther(amount);
-      const collateralInWei = ethers.parseEther(collateralAmount);
+      // 金额转换为 Wei
+      const amountInWei = ethers.parseUnits(amount, 18);
+      const collateralInWei = ethers.parseUnits(collateralAmount, 18);
+      
+      console.log(`金额转换为 Wei: ${amountInWei.toString()}, 抵押品: ${collateralInWei.toString()}`);
       
       // 调用合约
       const contract = await getContract();
+      console.log('合约实例创建成功，准备调用 borrow 方法');
+      
+      // 调用合约的 borrow 方法
       const tx = await contract.borrow(amountInWei, collateralInWei, duration);
+      console.log('借款交易已发送:', tx);
       
       setTxHash(tx.hash);
       
       // 等待交易确认
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log('借款交易已确认:', receipt);
+      
       setTxStatus('success');
       
       // 刷新贷款列表
@@ -200,7 +245,7 @@ export const useLending = () => {
       setTxStatus('error');
       throw error;
     }
-  }, [isConnected, connectWallet, fetchLoans]);
+  }, [isConnected, connectWallet, fetchLoans, address]);
   
   // 无抵押借款
   const borrowWithoutCollateral = useCallback(async (amount: string, duration: number) => {
@@ -217,16 +262,24 @@ export const useLending = () => {
       setTxStatus('pending');
       console.log(`调用无抵押借款函数: 金额=${amount}, 期限=${duration}`);
       
-      const amountInWei = ethers.parseEther(amount);
+      // 金额转换为 Wei
+      const amountInWei = ethers.parseUnits(amount, 18);
+      console.log(`金额转换为 Wei: ${amountInWei.toString()}`);
       
       // 调用合约
       const contract = await getContract();
+      console.log('合约实例创建成功，准备调用 borrowWithoutCollateral 方法');
+      
+      // 调用合约的 borrowWithoutCollateral 方法
       const tx = await contract.borrowWithoutCollateral(amountInWei, duration);
+      console.log('无抵押借款交易已发送:', tx);
       
       setTxHash(tx.hash);
       
       // 等待交易确认
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log('无抵押借款交易已确认:', receipt);
+      
       setTxStatus('success');
       
       // 刷新贷款列表
@@ -238,7 +291,7 @@ export const useLending = () => {
       setTxStatus('error');
       throw error;
     }
-  }, [isConnected, connectWallet, fetchLoans]);
+  }, [isConnected, connectWallet, fetchLoans, address]);
 
   // 还款
   const repay = useCallback(async (loanId: number) => {
@@ -248,15 +301,22 @@ export const useLending = () => {
     
     try {
       setTxStatus('pending');
+      console.log(`调用还款函数: 贷款ID=${loanId}`);
       
       // 调用合约
       const contract = await getContract();
+      console.log('合约实例创建成功，准备调用 repay 方法');
+      
+      // 调用合约的 repay 方法
       const tx = await contract.repay(loanId);
+      console.log('还款交易已发送:', tx);
       
       setTxHash(tx.hash);
       
       // 等待交易确认
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log('还款交易已确认:', receipt);
+      
       setTxStatus('success');
       
       // 刷新贷款列表
@@ -268,7 +328,7 @@ export const useLending = () => {
       setTxStatus('error');
       throw error;
     }
-  }, [isConnected, connectWallet, fetchLoans]);
+  }, [isConnected, connectWallet, fetchLoans, address]);
 
   return {
     address,
